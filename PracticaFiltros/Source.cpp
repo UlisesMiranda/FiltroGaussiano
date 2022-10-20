@@ -24,9 +24,9 @@ Mat matrizRelleno(int filas, int columnas, int n)
     int diferenciaBordes = n - 1;
     Mat matriz(filas + diferenciaBordes, columnas + diferenciaBordes, CV_8UC1);
 
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < filas + diferenciaBordes; i++)
     {
-        for (int j = 0; j < n; j++)
+        for (int j = 0; j < columnas + diferenciaBordes; j++)
         {
             matriz.at<uchar>(Point(j, i)) = uchar(0);
         }
@@ -81,6 +81,8 @@ int main()
         exit(1);
     }
 
+    cvtColor(image, image, COLOR_BGR2GRAY);
+
     mask = createMask(n);
     filasImagen = image.rows;
     columnasImagen = image.cols;
@@ -89,7 +91,12 @@ int main()
     matrizConBordes = copiarImgARelleno(matrizConBordes, image, n);
 
     namedWindow("NTSC Grayscale Image", WINDOW_AUTOSIZE);
-    imshow("NTSC Grayscale Image", matrizConBordes);
+    imshow("NTSC Grayscale Image", image);
+
+    namedWindow("Filtro Obtenido", WINDOW_AUTOSIZE);
+    imshow("Filtro Obtenido", matrizConBordes);
+
+    waitKey(0);
 
     return 1;
 }
