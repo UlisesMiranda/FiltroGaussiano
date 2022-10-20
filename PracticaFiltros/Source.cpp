@@ -1,7 +1,6 @@
-#include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-
+#include <opencv2/opencv.hpp>
 #include <iostream>
 
 using namespace cv;
@@ -10,9 +9,9 @@ using namespace std;
 Mat createMask(int n)
 {
     Mat mask(n, n, CV_8UC1);
-    for (int i = 0; i <= n; i++)
+    for (int i = 0; i < n; i++)
     {
-        for (int j = 0; j <= n; j++)
+        for (int j = 0; j < n; j++)
         {
             mask.at<uchar>(Point(j, i)) = uchar(0);
         }
@@ -25,9 +24,9 @@ Mat matrizRelleno(int filas, int columnas, int n)
     int diferenciaBordes = n - 1;
     Mat matriz(filas + diferenciaBordes, columnas + diferenciaBordes, CV_8UC1);
 
-    for (int i = 0; i <= n; i++)
+    for (int i = 0; i < n; i++)
     {
-        for (int j = 0; j <= n; j++)
+        for (int j = 0; j < n; j++)
         {
             matriz.at<uchar>(Point(j, i)) = uchar(0);
         }
@@ -42,9 +41,9 @@ Mat copiarImgARelleno(Mat bordes, Mat original, int n)
     int filas = bordes.rows;
     int columnas = bordes.cols;
 
-    for (int i = diferenciaBordes; i <= filas - diferenciaBordes; i++)
+    for (int i = diferenciaBordes; i < filas - diferenciaBordes; i++)
     {
-        for (int j = diferenciaBordes; j <= columnas - diferenciaBordes; j++)
+        for (int j = diferenciaBordes; j < columnas - diferenciaBordes; j++)
         {
             bordes.at<uchar>(Point(j, i)) = original.at<uchar>(Point(j - diferenciaBordes, i - diferenciaBordes));
         }
