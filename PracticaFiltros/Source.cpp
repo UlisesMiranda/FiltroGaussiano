@@ -1,22 +1,37 @@
+#define _USE_MATH_DEFINES
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <iomanip>
+#include <cmath>
 
 using namespace cv;
 using namespace std;
 
-Mat createMask(int n)
-{
-    Mat mask(n, n, CV_8UC1);
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            mask.at<uchar>(Point(j, i)) = uchar(0);
+double* rellenarMascara(double sigma, int n);
+
+double * rellenarMascara(double sigma, int n) {
+
+    int i = 0, limite = n / 2;
+    double r, s,z;
+
+    double* valores;
+    valores = new double[n * n];
+
+    s = 2.0 * sigma * sigma;
+
+  
+    for (int x = -limite; x <= limite; x++) {
+        for (int y = -limite; y <= limite; y++) {
+            r = sqrt(x * x + y * y);
+            z = (exp(-(r * r) / s)) / (M_PI * s);
+            valores[i] = (exp(-(r * r) / s)) / (M_PI * s);
+            i++;
         }
     }
-    return mask;
+
+    return valores;
 }
 
 Mat matrizRelleno(int filas, int columnas, int n)
@@ -55,17 +70,15 @@ Mat copiarImgARelleno(Mat bordes, Mat original, int n)
 int main()
 {
     int n = 0, filasImagen = 0, columnasImagen = 0;
-    float sigma = 0;
+    double sigma = 0.0;
 
-    Mat image, mask;
+    Mat image;
     char imageName[] = "lena.png";
 
     cout << "Digite el largo que tendra la mascara cuadrada para aplicar en la imagen: ";
     cin >> n;
     cout << "Digite el valor de 'sigma' para usar en el filtro Gaussiano: ";
     cin >> sigma;
-    /*cout << "Ingresa el /*nombre de la imagen a usar: ";
-    cin >> imageName;*/
 
     if ((n % 2) == 0)
     {
@@ -83,7 +96,13 @@ int main()
 
     cvtColor(image, image, COLOR_BGR2GRAY);
 
-    mask = createMask(n);
+    double* mascara = new double[n * n];
+    mascara = rellenarMascara(sigma, n);
+
+    for (int i = 0; i < n * n; i++) {
+        cout << mascara[i] << endl;
+    }
+
     filasImagen = image.rows;
     columnasImagen = image.cols;
 
