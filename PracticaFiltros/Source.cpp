@@ -1,96 +1,110 @@
-#include <opencv2/opencv.hpp>
+#define _USE_MATH_DEFINES
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
 
 #include <iostream>
+#include <cmath>
 
 using namespace cv;
 using namespace std;
 
-Mat createMask(int n)
-{
-    Mat mask(n, n, CV_8UC1);
-    for (int i = 0; i <= n; i++)
-    {
-        for (int j = 0; j <= n; j++)
-        {
-            mask.at<uchar>(Point(j, i)) = uchar(0);
-        }
-    }
-    return mask;
-}
+double* fillGraussianMask(double sigma, int n) {
+    int i = 0, limit = n / 2;
+    double r, s, z;
 
-Mat matrizRelleno(int filas, int columnas, int n)
-{
-    int diferenciaBordes = n - 1;
-    Mat matriz(filas + diferenciaBordes, columnas + diferenciaBordes, CV_8UC1);
+    double* values;
+    values = new double[n * n];
 
-    for (int i = 0; i <= n; i++)
-    {
-        for (int j = 0; j <= n; j++)
-        {
-            matriz.at<uchar>(Point(j, i)) = uchar(0);
+    s = 2.0 * sigma * sigma;
+
+    for (int x = -limit; x <= limit; x++) {
+        for (int y = -limit; y <= limit; y++) {
+            r = sqrt(x * x + y * y);
+            z = (exp(-(r * r) / s)) / (M_PI * s);
+
+            values[i] = (exp(-(r * r) / s)) / (M_PI * s);
+
+            i++;
         }
     }
 
-    return matriz;
+    return values;
 }
 
-Mat copiarImgARelleno(Mat bordes, Mat original, int n)
-{
-    int diferenciaBordes = ((n - 1) / 2);
-    int filas = bordes.rows;
-    int columnas = bordes.cols;
+Mat createBorderedImage(int rows, int cols, int n) {
+    int borderDifference = n - 1;
 
-    for (int i = diferenciaBordes; i <= filas - diferenciaBordes; i++)
-    {
-        for (int j = diferenciaBordes; j <= columnas - diferenciaBordes; j++)
-        {
-            bordes.at<uchar>(Point(j, i)) = original.at<uchar>(Point(j - diferenciaBordes, i - diferenciaBordes));
+    Mat matrix(rows + borderDifference, cols + borderDifference, CV_8UC1);
+
+    for (int i = 0; i < rows + borderDifference; i++) {
+        for (int j = 0; j < cols + borderDifference; j++) {
+            matrix.at<uchar>(Point(j, i)) = uchar(0);
         }
     }
 
-    return bordes;
+    return matrix;
 }
 
-int main()
-{
-    int n = 0, filasImagen = 0, columnasImagen = 0;
-    float sigma = 0;
+Mat adaptBorderedImage(Mat bordered, Mat original, int n) {
+    int borderDifference = ((n - 1) / 2);
 
-    Mat image, mask;
+    for (int i = borderDifference; i < bordered.rows - borderDifference; i++) {
+        for (int j = borderDifference; j < bordered.cols - borderDifference; j++) {
+            bordered.at<uchar>(Point(j, i)) = original.at<uchar>(Point(j - borderDifference, i - borderDifference));
+        }
+    }
+
+    return bordered;
+}
+
+int main() {
+    Mat image;
     char imageName[] = "lena.png";
+    int n = 0, imageRows = 0, imageCols = 0;
 
-    cout << "Digite el largo que tendra la mascara cuadrada para aplicar en la imagen: ";
+    double sigma = 0.0;
+
+    cout << "Digite el largo de la mascara: ";
     cin >> n;
-    cout << "Digite el valor de 'sigma' para usar en el filtro Gaussiano: ";
+    cout << "Digite el valor de 'sigma': ";
     cin >> sigma;
-    /*cout << "Ingresa el /*nombre de la imagen a usar: ";
-    cin >> imageName;*/
 
-    if ((n % 2) == 0)
-    {
+    if ((n % 2) == 0) {
         cout << "La mascara debe ser de longitud impar";
         exit(1);
     }
 
     image = imread(imageName);
-    // Error reading image validation
-    if (!image.data)
-    {
+    if (!image.data) {
         cout << "Error al cargar la imagen: " << imageName << endl;
         exit(1);
     }
 
-    mask = createMask(n);
-    filasImagen = image.rows;
-    columnasImagen = image.cols;
+    cvtColor(image, image, COLOR_BGR2GRAY);
 
-    Mat matrizConBordes = matrizRelleno(filasImagen, columnasImagen, n);
-    matrizConBordes = copiarImgARelleno(matrizConBordes, image, n);
+    double* maskArray = new double[n * n];
+    maskArray = fillGraussianMask(sigma, n);
 
-    namedWindow("NTSC Grayscale Image", WINDOW_AUTOSIZE);
-    imshow("NTSC Grayscale Image", matrizConBordes);
+    cout << "Valores calculados para la mascara de " << n << " * " << n << endl;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            cout << maskArray[i + j];
+            cout << "\t";
+        }
+        cout << "\n";
+    }
 
+    Mat borderedImage = createBorderedImage(image.rows, image.cols, n);
+    borderedImage = adaptBorderedImage(borderedImage, image, n);
+
+    namedWindow("Original image", WINDOW_AUTOSIZE);
+    imshow("Original image", image);
+
+    namedWindow("Bordered image", WINDOW_AUTOSIZE);
+    imshow("Bordered image", borderedImage);
+
+    waitKey(0);
     return 1;
 }
