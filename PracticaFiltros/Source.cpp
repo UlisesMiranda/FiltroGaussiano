@@ -23,7 +23,7 @@ Mat createMask(int n)
 Mat matrizRelleno(int filas, int columnas, int n)
 {
     int diferenciaBordes = n - 1;
-    Mat matriz(filas + diferenciaBordes, columnas + diferenciaBordes, CV_8UC1);
+    Mat matriz(filas + diferenciaBordes, columnas + diferenciaBordes, CV_8UC1); 
 
     for (int i = 0; i <= n; i++)
     {
